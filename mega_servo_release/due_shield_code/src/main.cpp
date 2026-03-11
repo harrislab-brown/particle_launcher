@@ -8,10 +8,10 @@
 #define photoGate2Pin 10
 #define buttonPin A0
 
-int cameraTriggerDelay = 300; // Delay in milliseconds
+int cameraTriggerDelay = 10; // Delay in milliseconds
 
 int servoRestPosition = 0; // Servo position when not triggered
-int servoReleasePosition = 90; // Servo position to release the particle
+int servoReleasePosition = 15; // Servo position to release the particle
 
 Servo releaseServo;
 
@@ -35,13 +35,11 @@ void loop() {
     Serial.println("Trigger detected!");
 
     digitalWrite(relayPin, LOW);  // LOW = relay on (active-low module)
-    Serial.println(digitalRead(relayPin));
     delay(cameraTriggerDelay);
 
     releaseServo.write(servoReleasePosition);
     delay(1000);
     releaseServo.write(servoRestPosition);
     digitalWrite(relayPin, HIGH); // HIGH = relay off
-    Serial.println(digitalRead(relayPin));
   }
 }
