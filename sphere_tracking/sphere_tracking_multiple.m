@@ -1,0 +1,83 @@
+%% Sphere Tracking from High-Speed Video - mutliple trial script
+
+
+close all;
+
+%--sphere_tracking inputs--%
+
+videoPath = '/Users/danielnorth/Library/CloudStorage/OneDrive-BrownUniversity/Desktop/26Dan''s Stuff/THESIS/Launcher V5.5 Test Videos [DATE]/';
+% fileName = 'vid_2001-12-16_18-55-57.mp4';
+fps = 6200;                       % frames per second
+tubeDiameter_real = 0.0021;         % meters (USER INPUT)
+sphereRadius_real = 0.0015 / 2; % sphere radius in m
+deviationThreshold = 0.0005; % acceptable "spray" in meters - given by Chase to be .5 mm of spray @ distance of deviation_threshold_distance (related to target droplet size)
+deviationThresholdDistance = 0.005;
+darkObjectThreshold = 75; % for sphere detection (adjust as necessary)
+%for output avg. velocity calculation 
+d_min = 0; % m
+d_max = 0.0015; % m
+
+%--prompt user to select notebook .csv file--%
+[file, path] = uigetfile('*.csv', 'Select Notebook CSV');
+notebook = readtable(fullfile(path, file));
+
+%--get some parameters about the dataset--%
+trials = notebook{:,1}.'; %just a list from 1 to n where n is tota=l # of trials
+compressions = unique(notebook{:,3}.'); %a list of all the different spring compressions trialed
+subtrialsPerCompression = (size(trials, 2)) / (size(compressions, 2)); %number of trials performed for each compression (must be the same for all compressions)
+% velocities = nan(size(trials),1)
+% deviations = nan(,1)
+
+%initialize some parameters used in the for loop:
+subtrial = 1; 
+compressionIndex = 1;
+
+%these will store the velocities and deviations for one compression within
+%the for loop
+compressionVels = nan(1, subtrialsPerCompression);
+compressionDevs = nan(1, subtrialsPerCompression);
+
+%these will store the average velocities/deviations, along with standard
+%deviations, for the whole dataset
+avgVels = nan(size(compressions, 2),1);
+avgDevs = nan(size(compressions, 2),1);
+stdVels = nan(size(compressions, 2),1);
+stdDevs = nan(size(compressions, 2),1);
+
+%%--loop thru all the trials and run the sphere tracking on each video (and its mirror counterpart)--%%
+
+for trial = trials
+    vid = string(notebook{trial, 4});
+    fileName = append(vid, '.mp4'); % Construct the filename for the current trial
+    [avgv_0, deviation] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max);
+    if subtrial < subtrialsPerCompression %so long as we are within a set of trials for the same compression
+        compressionVels(subtrial) = avgv_0;
+        compressionDevs(subtrial) = deviation;
+        subtrial = subtrial + 1;
+    else %once we hit the end of the trials for the compression, we want to average/std. dev all the results and reset for the next compression
+        compressionVels(subtrial) = avgv_0;
+        compressionDevs(subtrial) = deviation;
+        avgVels(compressionIndex) = mean(compressionVels);
+        avgDevs(compressionIndex) = mean(compressionDevs);
+        stdVels(compressionIndex) = std(compressionVels);
+        stdDevs(compressionIndex) = std(compressionDevs);
+        compressionIndex = compressionIndex + 1;
+        subtrial = 1;
+    end
+end
+
+%now we just want to plot the averages for velocity and deviation as a function of compression, showing the error bars for standard deviation:
+% Plot average velocities with error bars
+figure;
+subplot(2,1,1);
+errorbar(compressions, avgVels, stdVels, 'o-');
+xlabel('Spring Compression (mm)');
+ylabel('Average Velocity (m/s)');
+title('Average Particle Velocity (%.2f–%.2f mm) vs. Launcher Spring Compression', 1000*d_min, 1000*d_max);
+
+% Plot average deviations with error bars
+subplot(2,1,2);
+errorbar(compressions, avgDevs, stdDevs, 'o-');
+xlabel('Spring Compression (mm)');
+ylabel('Average Deviation (m)');
+title('Average Deviation at %.2f mm vs. Launcher Spring Compression', 1000*deviationThresholdDistance);

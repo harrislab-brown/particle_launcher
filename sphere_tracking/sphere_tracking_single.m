@@ -1,0 +1,20 @@
+%% Sphere Tracking from High-Speed Video - single trial script
+
+
+clear; clc; close all;
+videoPath = '/Users/danielnorth/Library/CloudStorage/OneDrive-BrownUniversity/Desktop/26Dan''s Stuff/THESIS/Launcher V5 proper tube length test videos/';
+fileName = 'vid_2001-12-16_18-55-57.mp4';
+fps = 6200;                       % frames per second
+tubeDiameter_real = 0.0021;         % meters (USER INPUT)
+sphereRadius_real = 0.0015 / 2; % sphere radius in m
+deviationThreshold = 0.0005; % acceptable "spray" in meters - given by Chase to be .5 mm of spray @ distance of deviation_threshold_distance (related to target droplet size)
+deviationThresholdDistance = 0.005;
+% startFrame = 6;                   % select the frame to start the video at (choose a frame where the sphere is fully visible)
+% endFrame = 87;
+darkObjectThreshold = 75; % for sphere detection (adjust as necessary)
+%for output avg. velocity calculation 
+d_min = 0; % m
+d_max = 0.0015; % m
+[avgv_0, x, y, vx, vy] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max);
+%waitfor(findall(0,'Type','figure'));
+%sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, startFrame, endFrame, darkObjectThreshold, d_min, d_max);
