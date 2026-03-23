@@ -1,7 +1,7 @@
 %% Sphere Tracking from High-Speed Video - function
 % Authors: ChatGPT & Daniel North
 
-function [avgv_0_o, x_o, y_o, vx_o, vy_o] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max)
+function [avgv_0_o, x_o, y_o, vx_o, vy_o] = sphere_tracking_singlerect(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max)
 %% ---------------- USER INPUT (defunct) ----------------
 % videoPath = '/Users/danielnorth/Library/CloudStorage/OneDrive-BrownUniversity/Desktop/26Dan''s Stuff/THESIS/Launcher V5 proper tube length test videos/';
 % fileName = 'vid_2001-12-16_18-55-57.mp4';
@@ -114,7 +114,7 @@ frame1 = readFrame(vid);
 
 %% ---------------- CALIBRATION ----------------
 %% User clicks tube center and tube edge
-figure; imshow(frame1); title('Click one corner of tube at outlet, then the other corner.');
+figure; imshow(frame1); title('Click one corner of tube at outlet, then the other corner');
 [xc, yc] = ginput(2);
 tubeEdgeUpper = [xc(1), yc(1)];
 tubeEdgeLower   = [xc(2), yc(2)];
@@ -128,7 +128,7 @@ sphereRadius = (sphereRadius_real) / meter_per_pixel; % convert sphere radius fr
 fprintf('Pixel-to-meter scale: %.6e m/pixel\n', meter_per_pixel);
 
 %% Define tube axis (centerline)
-figure; imshow(frame1); title('Click two points defining tube axis direction (select two points on either edge of tube).');
+figure; imshow(frame1); title('Click two points defining tube axis direction (select two points on either edge of tube)');
 [xline, yline] = ginput(2);
 p1 = [xline(1), yline(1)];
 p2 = [xline(2), yline(2)];
@@ -136,37 +136,9 @@ tubeAxis = p2 - p1;
 tubeAxis = tubeAxis / norm(tubeAxis); % unit vector
 
 %% Select exclusion region (to exclude tube from analysis)
-figure; imshow(frame1);
-title({'Click and drag to draw exclusion rectangles to isolate sphere of interest.'; ...
-       'Rectangles must not overlap or extend beyond video frame.'; ...
-       'Rectangles can be moved and resized after they are drawn. Double-click rectangle to confirm.'});
-
-exclusionRects = [];   % store all rectangles
-
-while true
-    hRect = imrect;
-    
-    pos = wait(hRect);     % wait until user double-clicks rectangle
-    
-    if isempty(pos)
-        break
-    end
-    
-    exclusionRects = [exclusionRects; round(pos)];
-    
-    % draw permanent rectangle so user sees it
-    rectangle('Position',pos,'EdgeColor','r','LineWidth',2);
-    
-    % ask if user wants another
-    choice = questdlg('Add another exclusion region?', ...
-                      'Continue?', ...
-                      'Yes','Done','Yes');
-                  
-    if strcmp(choice,'Done')
-        break
-    end
-end
-
+figure; imshow(frame1); title('Draw a rectangle around the tube. The rectangle must not extend past the video frame.');
+hRect = imrect;                % user draws rectangle
+exclusionPos = round(hRect.getPosition()); % [x y width height]
 close;
 
 %% Reset video
@@ -186,28 +158,10 @@ while hasFrame(vid) && frameIdx+startFrame <= endFrame
     gray = rgb2gray(frame);
     
     % --- CREATE MASK TO EXCLUDE TUBE ---
-    mask = true(size(gray));
-    [imgH, imgW] = size(gray);
-    
-    for k = 1:size(exclusionRects,1)
-    
-        x1 = exclusionRects(k,1);
-        y1 = exclusionRects(k,2);
-        w  = exclusionRects(k,3);
-        h  = exclusionRects(k,4);
-    
-        % Compute bounds
-        xStart = max(1, x1);
-        yStart = max(1, y1);
-        xEnd   = min(imgW, x1 + w);
-        yEnd   = min(imgH, y1 + h);
-    
-        % Only apply if rectangle is still valid
-        if xStart <= xEnd && yStart <= yEnd
-            mask(yStart:yEnd, xStart:xEnd) = false;
-        end
-    
-    end
+    mask = true(size(gray));  % initially include everything
+    x1 = exclusionPos(1); y1 = exclusionPos(2);
+    w = exclusionPos(3); h = exclusionPos(4);
+    mask(y1:y1+h, x1:x1+w) = false; % set exclusion rectangle to false
 
     % --- THRESHOLD TO DETECT DARK OBJECTS ---
     bw = gray < darkObjectThreshold;          % adjust threshold if needed

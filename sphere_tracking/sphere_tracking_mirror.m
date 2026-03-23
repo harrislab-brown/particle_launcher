@@ -1,11 +1,14 @@
 %% Sphere Tracking from High-Speed Video - dual video (or 1 video with a 45 degree mirror)
-%runs the sphere tracking function twice - once on the normal video, once
-%on the mirrored video.
-% ** the mirrored video must have the following naming convention: 'm_[name-of-normal-video].mp4'
+%runs the sphere tracking function twice - once on the normal view, once
+%on the mirrored view.
+% It will be one video with both mirrored and normal views in frame. For
+% the first one, the user draws exclusion rectangles to isolate just the
+% normal view, and then the sphere_tracking is run again on the same video,
+% only the user will now isolate the mirrored view.
 
 function [avgv_0_o, deviation] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max)
 [avgv_0, x, y, vx, vy] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max);
-[avgv_0_m, x_m, z, vx_m, vz] = sphere_tracking(videoPath, append('m_', fileName), fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max);
+[avgv_0_m, x_m, z, vx_m, vz] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max);
 z = -z; %because mirror image
 
 % Now we compute our own avgv0 based on our THREE components vx vy vz:
@@ -36,5 +39,8 @@ z_d = interp1( ...
 
 %take magnitude of [y z] vector to get total 2D deviation:
 deviation = vecnorm([y_d z_d]);
+
+fprintf('3D Deviation: %.2f mm\n', deviation*1000);
+fprintf('3D Avg v0: %.2f m/s\n', avgv_0_o);
 
 end
