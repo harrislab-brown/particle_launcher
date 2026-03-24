@@ -6,7 +6,7 @@
 % normal view, and then the sphere_tracking is run again on the same video,
 % only the user will now isolate the mirrored view.
 
-function [avgv_0_o, deviation_o, deviationVec_o, calibrations_o] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibrations)
+function [avgv_0_o, deviation_o, calibrations_o] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibrations)
 if nargin == 11
     calibration_n_i = calibrations(1);
     calibration_m_i = calibrations(2);
@@ -47,7 +47,6 @@ z_d = interp1( ...
 
 %take magnitude of [y z] vector to get total 2D deviation:
 deviation_o = vecnorm([y_d z_d]);
-deviationVec_o = [y_d z_d];
 
 %store calibration data from normal and mirrored:
 calibrations_o = {calibration_n, calibration_m};

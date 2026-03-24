@@ -3,15 +3,15 @@
 
 close all;
 
-%--sphere_tracking inputs--%
+%% --sphere_tracking inputs-- %%
 
 %make sure that the folder this path leads to contains all the videos you
 %want to analyze AND the notebook CSV (notebook csv not required to be in
 %there but makes it easier)
-videoPath = '/Users/danielnorth/Library/CloudStorage/OneDrive-BrownUniversity/Desktop/26Dan''s Stuff/THESIS/Launcher V5.5 Test Videos 3-23-26/';
-fps = 6448.2848;                       % frames per second
+videoPath = '/Users/danielnorth/Library/CloudStorage/OneDrive-BrownUniversity/Desktop/26Dan''s Stuff/THESIS/Launch V5.5 Vids 3-23-2026/';
+fps = 6447.744;                       % frames per second
 tubeDiameter_real = 0.0021;         % meters (USER INPUT)
-sphereRadius_real = 0.0015 / 2; % sphere radius in m
+sphereRadius_real = 0.00148 / 2; % sphere radius in m
 deviationThreshold = 0.0005; % acceptable "spray" in meters - given by Chase to be .5 mm of spray @ distance of deviation_threshold_distance (related to target droplet size)
 deviationThresholdDistance = 0.005;
 darkObjectThreshold = 75; % for sphere detection (adjust as necessary)
@@ -19,15 +19,17 @@ darkObjectThreshold = 75; % for sphere detection (adjust as necessary)
 d_min = 0; % m
 d_max = 0.002; % m
 springConstant = 200; %in N/m
+% startTrial = 1; %in case script fails midway thru, can start at a specified trial
 
 
-%--prompt user to select notebook .csv file--%
+%%--prompt user to select notebook .csv file--%
 [file, path] = uigetfile('*.csv', 'Select Notebook CSV', videoPath);
 notebook = readtable(fullfile(path, file));
 
-%--get some parameters about the dataset--%
-trials = notebook{:,1}.'; %just a list from 1 to n where n is tota=l # of trials
+%%--get some parameters about the dataset--%
+trials = notebook{:,1}.'; %just a list from 1 to n where n is total # of trials
 compressions = unique(notebook{:,3}.'); %a list of all the different spring compressions trialed
+compressions_all = notebook{:,3}.'; % non-unique list
 subtrialsPerCompression = (size(trials, 2)) / (size(compressions, 2)); %number of trials performed for each compression (must be the same for all compressions)
 % velocities = nan(size(trials),1)
 % deviations = nan(,1)
@@ -48,12 +50,22 @@ avgDevs = nan(size(compressions, 2),1);
 stdVels = nan(size(compressions, 2),1);
 stdDevs = nan(size(compressions, 2),1);
 
+% this will store the deviations from each trial, along with corresponding
+% compressions, for the scatter plot
+deviationVecs = nan(size(trials,2),2);
+
+%%--run the mirrored tracking function once on the first video to establish
+%%tube size, tube axis, and exclusion rectangles:
+firstFile = string(notebook{1, 4});
+[avgv_0, deviation, deviationVec_1, calibrations] = sphere_tracking_mirror(videoPath, firstFile, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max);
+
 %%--loop thru all the trials and run the sphere tracking on each video (and its mirror counterpart)--%%
 
 for trial = trials
     vid = string(notebook{trial, 4});
     fileName = vid; % Construct the filename for the current trial
-    [avgv_0, deviation] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max);
+    [avgv_0, deviation, deviationVec, calibrations_o] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibrations);
+    deviationVecs(trial,:) = deviationVec;
     if subtrial < subtrialsPerCompression %so long as we are within a set of trials for the same compression
         compressionVels(subtrial) = avgv_0;
         compressionDevs(subtrial) = deviation;
@@ -71,17 +83,50 @@ for trial = trials
 end
 
 %now we just want to plot the averages for velocity and deviation as a function of compression, showing the error bars for standard deviation:
+
 % Plot average velocities with error bars
+
 figure;
-subplot(2,1,1);
+sgtitle('Particle Launcher V5.5 | Spring $k = 200 N/m$ | 03-23-2026', 'Interpreter', 'latex');
+
+subplot(3,1,1);
 errorbar(compressions, avgVels, stdVels, 'o-');
-xlabel('Spring Compression (mm)');
-ylabel('Average Velocity (m/s)');
-title('Average Particle Velocity (%.2f–%.2f mm) vs. Launcher Spring Compression', 1000*d_min, 1000*d_max);
+xlabel('$x$ (mm)', 'Interpreter', 'latex');
+ylabel('$v_{avg}$ (m/s)', 'Interpreter', 'latex');
+title(sprintf('Average Particle Velocity (%.2f–%.2f mm) vs. Launcher Spring Compression', 1000*d_min, 1000*d_max));
+set(gca, 'FontName', 'Times');
+grid on;
 
 % Plot average deviations with error bars
-subplot(2,1,2);
-errorbar(compressions, avgDevs, stdDevs, 'o-');
-xlabel('Spring Compression (mm)');
-ylabel('Average Deviation (m)');
-title('Average Deviation at %.2f mm vs. Launcher Spring Compression', 1000*deviationThresholdDistance);
+subplot(3,1,2);
+errorbar(compressions, (avgDevs*1000), (stdDevs*1000), 'o-');
+xlabel('$x$ (mm)', 'Interpreter', 'latex');
+ylabel('Average Deviation (mm)', 'Interpreter', 'latex');
+title(sprintf('Average Deviation at %.2f mm vs. Launcher Spring Compression', 1000*deviationThresholdDistance));
+set(gca, 'FontName', 'Times');
+grid on;
+
+subplot(3,1,3);
+scatter((deviationVecs(:,1).*1000), (deviationVecs(:,2).*1000));
+
+centers = [0 0; 0 0];  % circle centers
+radii   = [(deviationThreshold*1000) (tubeDiameter_real*1000)/2];
+colors = {'red' 'blue'};
+labels = {'Deviation Threshold', 'Launcher Barrel'}
+viscircles([0 0], (deviationThreshold*1000)); %deviation limit
+viscircles([0 0], (tubeDiameter_real*1000)/2, 'Color', 'b'); %represents barrel
+offsets = [1 0.8]; % adjust as needed
+for i = 1:size(centers,1)
+    text(centers(i,1)+offsets(1), centers(i,2)+offsets(i), ...
+        sprintf(labels{i}), ...
+        'Color', colors{i}, 'FontSize',10);
+end
+
+xlabel('$y$ (mm)', 'Interpreter', 'latex');
+ylabel('$z$ (mm)', 'Interpreter', 'latex');
+title(sprintf('Deviation Scatter Plot at %.2f mm', 1000*deviationThresholdDistance));
+set(gca, 'FontName', 'Times');
+xlim([-1.2 1.2]);
+ylim([-1.2 1.2]);
+axis equal;
+grid on;
