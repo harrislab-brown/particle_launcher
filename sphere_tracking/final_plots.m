@@ -2,7 +2,7 @@
 % Plot average velocities with error bars
 
 figure;
-sgtitle('Particle Launcher V5.5 | Spring $k = 200 N/m$ | 03-23-2026', 'Interpreter', 'latex');
+sgtitle(sprintf('Particle Launcher V5.5 | Spring $k = %.0f  N/m$ | 03-24-2026', 158), 'Interpreter', 'latex');
 subplot(3,1,1);
 errorbar(compressions, avgVels, stdVels, 'o-');
 xlabel('$x$ (mm)', 'Interpreter', 'latex');

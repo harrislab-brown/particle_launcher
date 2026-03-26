@@ -29,7 +29,7 @@ vy_o = [];
 % Store inputs so Redo button can relaunch function
 inputArgs = {videoPath, fileName, fps, tubeDiameter_real, ...
     sphereRadius_real, deviationThreshold, deviationThresholdDistance, ...
-    darkObjectThreshold, d_min, d_max};
+    darkObjectThreshold, d_min, d_max, calibration};
 
 %% ---------------- LOAD VIDEO ----------------
 videoFile = append(videoPath, fileName);
@@ -194,6 +194,8 @@ else
     tubeCenter = [scale(1), scale(2)];
     meter_per_pixel = scale(3);
     sphereRadius = scale(4);
+
+    calibration_o = calibration;
 end
 
 
@@ -288,19 +290,33 @@ speed = vecnorm(velocity, 2, 2);
 regionIdx = distFromTube >= d_min & distFromTube <= d_max & ~isnan(speed);
 avgv_0 = mean(speed(regionIdx), 'omitnan');
 
-%% ---------------- DEVIATION @ THRESHOLD DISTANCE ----------------
+% %% ---------------- DEVIATION @ THRESHOLD DISTANCE ----------------
+% 
+% % Remove NaNs
+% validIdx = ~isnan(distFromTube) & ~isnan(deviation);
+% 
+% % Interpolate deviation at desired distance
+% deviation_at_d = interp1( ...
+%     distFromTube(validIdx), ...
+%     deviation(validIdx), ...
+%     deviationThresholdDistance, ...
+%     'linear');
+% 
+% fprintf('Deviation at %.3f mm = %.4f mm\n',deviationThresholdDistance*1000, deviation_at_d*1000);
 
-% Remove NaNs
+%% ---------------- DEVIATION @ THRESHOLD DISTANCE ----------------
+% Only consider valid, non-NaN points
 validIdx = ~isnan(distFromTube) & ~isnan(deviation);
 
-% Interpolate deviation at desired distance
-deviation_at_d = interp1( ...
-    distFromTube(validIdx), ...
-    deviation(validIdx), ...
-    deviationThresholdDistance, ...
-    'linear');
+% Remove duplicates in distFromTube
+[distUnique, ia] = unique(distFromTube(validIdx), 'stable');
+deviationUnique = deviation(validIdx);
+deviationUnique = deviationUnique(ia);
 
-%fprintf('Deviation at %.3f mm = %.4f mm\n',deviationThresholdDistance*1000, deviation_at_d*1000);
+% Now safely interpolate
+deviation_at_d = interp1(distUnique, deviationUnique, deviationThresholdDistance, 'linear');
+
+fprintf('Deviation at %.3f mm = %.4f mm\n', deviationThresholdDistance*1000, deviation_at_d*1000);
 
 %% ================= GUI FIGURE =================
 % fig = figure('Name','Sphere Tracking GUI','NumberTitle','off','Position',[100 100 1200 800]);

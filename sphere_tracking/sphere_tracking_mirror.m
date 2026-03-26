@@ -7,14 +7,14 @@
 % only the user will now isolate the mirrored view.
 
 function [avgv_0_o, deviation_o, deviationVec_o, calibrations_o] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibrations)
-if nargin == 11
+if calibrations ~= 0
     calibration_n_i = calibrations(1);
     calibration_m_i = calibrations(2);
-    [avgv_0, x, y, vx, vy, calibration_n] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibration_n_i);
-    [avgv_0_m, x_m, z, vx_m, vz, calibration_m] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibration_m_i);
+    [avgv_0, x, y, vx, vy, calibration_n, frames] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibration_n_i, 0);
+    [avgv_0_m, x_m, z, vx_m, vz, calibration_m, frames_m] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibration_m_i, frames);
 else
-    [avgv_0, x, y, vx, vy, calibration_n] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max);
-    [avgv_0_m, x_m, z, vx_m, vz, calibration_m] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max);
+    [avgv_0, x, y, vx, vy, calibration_n, frames] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, 0, 0);
+    [avgv_0_m, x_m, z, vx_m, vz, calibration_m, frames_m] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, 0, 0);
 end
 
 z = -z; %because mirror image
@@ -33,15 +33,23 @@ avgv_0_o = mean(speed(regionIdx), 'omitnan');
 % Remove NaNs
 validIdx = ~isnan(x) & ~isnan(y) & ~isnan(z);
 
+% Remove duplicates from x
+[xUnique, ia] = unique(x(validIdx), 'stable');
+yUnique = y(validIdx);
+yUnique = yUnique(ia);
+zUnique = z(validIdx);
+zUnique = zUnique(ia);
+
+
 % Interpolate y and z deviation at desired distance
 y_d = interp1( ...
-    x(validIdx), ...
-    y(validIdx), ...
+    xUnique, ...
+    yUnique, ...
     deviationThresholdDistance, ...
     'linear');
 z_d = interp1( ...
-    x(validIdx), ...
-    z(validIdx), ...
+    xUnique, ...
+    zUnique, ...
     deviationThresholdDistance, ...
     'linear');
 

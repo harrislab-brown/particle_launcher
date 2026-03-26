@@ -8,23 +8,24 @@ close all;
 %make sure that the folder this path leads to contains all the videos you
 %want to analyze AND the notebook CSV (notebook csv not required to be in
 %there but makes it easier)
-videoPath = '/Users/danielnorth/Library/CloudStorage/OneDrive-BrownUniversity/Desktop/26Dan''s Stuff/THESIS/Launch V5.5 Vids 3-23-2026/';
+videoPath = '/Users/danielnorth/Library/CloudStorage/OneDrive-BrownUniversity/Desktop/26Dan''s Stuff/THESIS/L V5.5 Vids 3-26-26 1mm particles/';
 fps = 6447.744;                       % frames per second
-tubeDiameter_real = 0.0021;         % meters (USER INPUT)
-sphereRadius_real = 0.00148 / 2; % sphere radius in m
+change this !!! tubeDiameter_real = 0.0021;         % meters (USER INPUT)
+change this !!! sphereRadius_real = 0.00148 / 2; % sphere radius in m
 deviationThreshold = 0.0005; % acceptable "spray" in meters - given by Chase to be .5 mm of spray @ distance of deviation_threshold_distance (related to target droplet size)
 deviationThresholdDistance = 0.005;
 darkObjectThreshold = 75; % for sphere detection (adjust as necessary)
 %for output avg. velocity calculation 
 d_min = 0; % m
 d_max = 0.002; % m
-springConstant = 200; %in N/m
-% startTrial = 1; %in case script fails midway thru, can start at a specified trial
+springConstant = 158; %in N/m
+change this if need be!! recalibrateTrials = [1]; %if something shifted in the experiment and you need to recalibrate before a certain trial or trials, specify the trial number here. If not applicable, set this = []. The number 1 (for the first trial) needs to be in this array, or there will be an error.
+plotTitle = 'Particle Launcher V5.5 | Spring $k = 158 N/m$ | 03-24-2026';
 
 
 %%--prompt user to select notebook .csv file--%
 [file, path] = uigetfile('*.csv', 'Select Notebook CSV', videoPath);
-notebook = readtable(fullfile(path, file));
+notebook = readtable(fullfile(path, file), 'NumHeaderLines', 1);
 
 %%--get some parameters about the dataset--%
 trials = notebook{:,1}.'; %just a list from 1 to n where n is total # of trials
@@ -56,15 +57,19 @@ deviationVecs = nan(size(trials,2),2);
 
 %%--run the mirrored tracking function once on the first video to establish
 %%tube size, tube axis, and exclusion rectangles:
-firstFile = string(notebook{1, 4});
-[avgv_0, deviation, deviationVec_1, calibrations] = sphere_tracking_mirror(videoPath, firstFile, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max);
+% firstFile = string(notebook{1, 4});
+% [avgv_0, deviation, deviationVec_1, calibrations] = sphere_tracking_mirror(videoPath, firstFile, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max);
 
 %%--loop thru all the trials and run the sphere tracking on each video (and its mirror counterpart)--%%
 
 for trial = trials
     vid = string(notebook{trial, 4});
     fileName = vid; % Construct the filename for the current trial
-    [avgv_0, deviation, deviationVec, calibrations_o] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibrations);
+    if ismember(trial, recalibrateTrials) %if we need to recalibrate...
+        [avgv_0, deviation, deviationVec, calibrations] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, 0);
+    else
+        [avgv_0, deviation, deviationVec, calibrations_o] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibrations);
+    end
     deviationVecs(trial,:) = deviationVec;
     if subtrial < subtrialsPerCompression %so long as we are within a set of trials for the same compression
         compressionVels(subtrial) = avgv_0;
@@ -85,7 +90,7 @@ end
 %now we just want to plot the averages for velocity and deviation as a function of compression, showing the error bars for standard deviation:
 
 figure;
-sgtitle('Particle Launcher V5.5 | Spring $k = 200 N/m$ | 03-23-2026', 'Interpreter', 'latex');
+sgtitle(plotTitle, 'Interpreter', 'latex');
 
 % Plot average velocities with error bars
 subplot(3,1,1);
@@ -130,3 +135,6 @@ xlim([-1.2 1.2]);
 ylim([-1.2 1.2]);
 axis equal;
 grid on;
+
+saveas(gcf, append(videoPath, 'plot.png'));
+save(append(videoPath, 'postprocessed_data.mat'));
