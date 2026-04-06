@@ -7,14 +7,14 @@
 % only the user will now isolate the mirrored view.
 
 function [avgv_0_o, deviation_o, deviationVec_o, calibrations_o] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibrations)
-if calibrations ~= 0
+if isempty(calibrations)
+    [avgv_0, x, y, vx, vy, calibration_n, frames] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, [], []);
+    [avgv_0_m, x_m, z, vx_m, vz, calibration_m, frames_m] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, [], []);
+else
     calibration_n_i = calibrations(1);
     calibration_m_i = calibrations(2);
-    [avgv_0, x, y, vx, vy, calibration_n, frames] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibration_n_i, 0);
+    [avgv_0, x, y, vx, vy, calibration_n, frames] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibration_n_i, []);
     [avgv_0_m, x_m, z, vx_m, vz, calibration_m, frames_m] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibration_m_i, frames);
-else
-    [avgv_0, x, y, vx, vy, calibration_n, frames] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, 0, 0);
-    [avgv_0_m, x_m, z, vx_m, vz, calibration_m, frames_m] = sphere_tracking(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, 0, 0);
 end
 
 z = -z; %because mirror image

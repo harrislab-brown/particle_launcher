@@ -10,8 +10,8 @@ close all;
 %there but makes it easier)
 videoPath = '/Users/danielnorth/Library/CloudStorage/OneDrive-BrownUniversity/Desktop/26Dan''s Stuff/THESIS/L V5.5 Vids 3-26-26 1mm particles/';
 fps = 6447.744;                       % frames per second
-change this !!! tubeDiameter_real = 0.0021;         % meters (USER INPUT)
-change this !!! sphereRadius_real = 0.00148 / 2; % sphere radius in m
+tubeDiameter_real = 0.00146;         % meters (USER INPUT)
+sphereRadius_real = 0.00099 / 2; % sphere radius in m
 deviationThreshold = 0.0005; % acceptable "spray" in meters - given by Chase to be .5 mm of spray @ distance of deviation_threshold_distance (related to target droplet size)
 deviationThresholdDistance = 0.005;
 darkObjectThreshold = 75; % for sphere detection (adjust as necessary)
@@ -19,8 +19,9 @@ darkObjectThreshold = 75; % for sphere detection (adjust as necessary)
 d_min = 0; % m
 d_max = 0.002; % m
 springConstant = 158; %in N/m
-change this if need be!! recalibrateTrials = [1]; %if something shifted in the experiment and you need to recalibrate before a certain trial or trials, specify the trial number here. If not applicable, set this = []. The number 1 (for the first trial) needs to be in this array, or there will be an error.
-plotTitle = 'Particle Launcher V5.5 | Spring $k = 158 N/m$ | 03-24-2026';
+recalibrateTrials = []; %if something shifted in the experiment and you need to recalibrate before a certain trial or trials, specify the trial number here. If not applicable, set this = []. The number 1 (for the first trial) needs to be in this array, or there will be an error.
+startTrial = 1; %if error occurs and need to pick up in the middle, comment out everything before the for loop and change this variable to the trial you want to restart at (make sure you don't clear the workspace)
+plotTitle = 'Particle Launcher V5.5 | Spring $k = 158 N/m$ | 1mm Steel Spheres | 03-24-2026';
 
 
 %%--prompt user to select notebook .csv file--%
@@ -62,11 +63,12 @@ deviationVecs = nan(size(trials,2),2);
 
 %%--loop thru all the trials and run the sphere tracking on each video (and its mirror counterpart)--%%
 
-for trial = trials
+for trial = trials(startTrial:end)
+    fprintf('Trial %i\n', trial);
     vid = string(notebook{trial, 4});
     fileName = vid; % Construct the filename for the current trial
     if ismember(trial, recalibrateTrials) %if we need to recalibrate...
-        [avgv_0, deviation, deviationVec, calibrations] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, 0);
+        [avgv_0, deviation, deviationVec, calibrations] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, []);
     else
         [avgv_0, deviation, deviationVec, calibrations_o] = sphere_tracking_mirror(videoPath, fileName, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, calibrations);
     end

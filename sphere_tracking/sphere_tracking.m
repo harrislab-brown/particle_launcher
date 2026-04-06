@@ -43,7 +43,7 @@ fps_vidtime = vid.NumFrames / vid.Duration; % because the video plays in slo-mo 
 % frame1 = read(vid, startFrame);
 
 %% ---------------- FRAME RANGE SELECTION ----------------
-if frames_i == 0
+if isempty(frames_i)
     nFrames = vid.NumFrames;
     
     % Create figure 
@@ -125,7 +125,7 @@ vid.CurrentTime = (startFrame-1) / fps_vidtime;
 frame1 = readFrame(vid);
 
 %% ---------------- CALIBRATION ----------------
-if calibration == 0
+if isempty(calibration)
     %% User clicks tube edge and tube edge
     figure; imshow(frame1); title('Click one corner of tube at outlet, then the other corner.');
     [xc, yc] = ginput(2);
