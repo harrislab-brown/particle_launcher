@@ -1,13 +1,14 @@
-m_sphere = 0.0141e-3; %sphere mass in kg
+m_sphere = 0.0241e-3; %sphere mass in kg
 m_plunger = 2.5246e-3; %plunger+plunger tip mass
 m_spring = 0.6725e-3; %spring mass
+F_nc = 1.48; %aggregate net constant non-conservative force (match to fit data)
 d0 = 13.3e-3; %plunger travel distance in m (measured from CAD)
 
 %now we just want to plot the averages for velocity and deviation as a function of compression, showing the error bars for standard deviation:
 % Plot average velocities with error bars
 
 figure;
-sgtitle(sprintf(plotTitle), 'Interpreter', 'latex');
+sgtitle(plotTitle, 'Interpreter', 'latex');
 subplot(3,1,1);
 errorbar(compressions, avgVels, stdVels, 'o-');
 xlabel('$x$ (mm)', 'Interpreter', 'latex');
@@ -30,7 +31,7 @@ x_m = x ./ 1000; %convert to meters
 % dPEsp = 0.5.*k.*(((x_m-d0).^2)-(x_m.^2));
 % KE_i = 0; %sphere starts at rest
 % F_nc = 0.6579; %assume constant combined force for non-conservative forces (friction, air resistance)
-F_nc = 1.2;
+% F_nc = 1.2;
 % W_noncons = F_noncons * d0; %energy losses due to work done by non-cons forces
 % 
 % 
@@ -42,9 +43,9 @@ n = size(x);
 v_f = zeros(n);
 for i = [1:n(2)]
     if x_m(i) <= d0
-        v_f(i) = sqrt((k/m)*(x_m(i)^2) - 2*g*d0 - (F_nc*d0)/m);
+        v_f(i) = sqrt((k/m)*(x_m(i)^2) + 2*g*d0 - (F_nc*d0)/m);
     else
-        v_f(i) = sqrt((k/m)*((x_m(i)^2)-((x_m(i)-d0))^2) - 2*g*d0 - (F_nc*d0)/m);
+        v_f(i) = sqrt((k/m)*((x_m(i)^2)-((x_m(i)-d0))^2) + 2*g*d0 - (F_nc*d0)/m);
     end
 end
 
