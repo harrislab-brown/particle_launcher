@@ -29,8 +29,7 @@ x_m = x ./ 1000; %convert to meters
 % dPEg = m*g*d0;
 % dPEsp = 0.5.*k.*(((x_m-d0).^2)-(x_m.^2));
 % KE_i = 0; %sphere starts at rest
-% F_nc = 0.6579; %assume constant combined force for non-conservative forces (friction, air resistance)
-F_nc = 1.2;
+% F_noncons = 0.6579; %assume constant combined force for non-conservative forces (friction, air resistance)
 % W_noncons = F_noncons * d0; %energy losses due to work done by non-cons forces
 % 
 % 
@@ -40,11 +39,11 @@ F_nc = 1.2;
 % %energy_loss = (v_f_data.^2) ./ (v_f.^2);
 n = size(x);
 v_f = zeros(n);
-for i = [1:n(2)]
-    if x_m(i) <= d0
-        v_f(i) = sqrt((k/m)*(x_m(i)^2) - 2*g*d0 - (F_nc*d0)/m);
+for i = [1:size(x)()]
+    if x <= d0
+        v_f;
     else
-        v_f(i) = sqrt((k/m)*((x_m(i)^2)-((x_m(i)-d0))^2) - 2*g*d0 - (F_nc*d0)/m);
+        lol
     end
 end
 

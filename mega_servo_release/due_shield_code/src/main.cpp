@@ -8,12 +8,12 @@
 #define photoGate2Pin 10
 #define buttonPin A0
 
-int cameraTriggerDelay = 65; // Delay in milliseconds
+int cameraTriggerDelay = 85; // Delay in milliseconds
 int videoDuration = 500; // Total time from camera start to camera stop in ms (if lower than 500, the Chronos camera can't handle the small gap between camera start/stop signals from relay)
 int relayDelay = 10; // Time between effective press and effective release of camera trigger (must be < videoDuration)
 
-int servoRestPosition = 7.5; // Servo position when not triggered
-int servoReleasePosition = 25; // Servo position to release the particle
+int servoRestPosition = 63; // Servo position when not triggered
+int servoReleasePosition = 110; // Servo position to release the particle
 
 int state; // To ensure button can't be held to prolong camera relay trigger
 int prevState = HIGH;

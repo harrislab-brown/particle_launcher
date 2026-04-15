@@ -3,25 +3,31 @@
 
 close all;
 
-%% --sphere_tracking inputs-- %%
+%% --USER INPUTS-- %%
 
 %make sure that the folder this path leads to contains all the videos you
 %want to analyze AND the notebook CSV (notebook csv not required to be in
 %there but makes it easier)
-videoPath = '/Users/danielnorth/Library/CloudStorage/OneDrive-BrownUniversity/Desktop/26Dan''s Stuff/THESIS/L V5.5 Vids 3-26-26 1mm particles/';
+videoPath = '/Users/danielnorth/Library/CloudStorage/OneDrive-BrownUniversity/Desktop/26Dan''s Stuff/THESIS/L V5.5 Vids 1mm particle stiffer spring/';
 fps = 6447.744;                       % frames per second
-tubeDiameter_real = 0.00146;         % meters (USER INPUT)
-sphereRadius_real = 0.00099 / 2; % sphere radius in m
+
+tubeDiameter_real = 0.0021;         % meters (USER INPUT)
+sphereRadius_real = 0.0015 / 2; % sphere radius in m
+m_sphere = 0; %sphere mass in kg
+m_plunger = 0; %plunger+plunger tip mass
+m_spring = 0; %spring mass
+d0 = 13.3e-3; %plunger travel distance in m (measured from CAD)
+
 deviationThreshold = 0.0005; % acceptable "spray" in meters - given by Chase to be .5 mm of spray @ distance of deviation_threshold_distance (related to target droplet size)
 deviationThresholdDistance = 0.005;
-darkObjectThreshold = 75; % for sphere detection (adjust as necessary)
-%for output avg. velocity calculation 
+darkObjectThreshold = 100; % for sphere detection (adjust as necessary)
+%for output avg. velocity calculation: 
 d_min = 0; % m
 d_max = 0.002; % m
 springConstant = 158; %in N/m
-recalibrateTrials = []; %if something shifted in the experiment and you need to recalibrate before a certain trial or trials, specify the trial number here. If not applicable, set this = []. The number 1 (for the first trial) needs to be in this array, or there will be an error.
+recalibrateTrials = [1]; %if something shifted in the experiment and you need to recalibrate before a certain trial or trials, specify the trial number here. If not applicable, set this = []. The number 1 (for the first trial) needs to be in this array, or there will be an error.
 startTrial = 1; %if error occurs and need to pick up in the middle, comment out everything before the for loop and change this variable to the trial you want to restart at (make sure you don't clear the workspace)
-plotTitle = 'Particle Launcher V5.5 | Spring $k = 158 N/m$ | 1mm Steel Spheres | 03-24-2026';
+plotTitle = 'Particle Launcher V6 | Spring $k = 158 N/m$ | 1.5 mm Steel Spheres | Launch Angle: $ang{0}$ (Down) | 04-12-2026'; %launch angle: 0 is down, 90 is right, 180 is up, 270 is left (counterclockwise)
 
 
 %%--prompt user to select notebook .csv file--%
@@ -102,6 +108,29 @@ ylabel('$v_{avg}$ (m/s)', 'Interpreter', 'latex');
 title(sprintf('Average Particle Velocity (%.2f–%.2f mm) vs. Launcher Spring Compression', 1000*d_min, 1000*d_max));
 set(gca, 'FontName', 'Times');
 grid on;
+hold on;
+
+%now the theoretical velocity line:
+m = m_plunger + m_sphere + (m_spring/3);
+g = 9.81;
+k = springConstant;
+
+x = linspace(compressions(1),compressions(end),20); %in mm
+x_m = x ./ 1000; %convert to meters
+
+%energies, delta (final - initial) energies
+dPEg = m*g*d0;
+dPEsp = 0.5.*k.*(((x_m-d0).^2)-(x_m.^2));
+KE_i = 0; %sphere starts at rest
+F_noncons = 0; %bucket for energy losses due to work done by friction, air resistance
+W_noncons = d0 * F_noncons;
+
+v_f = ((-dPEsp - dPEg - W_noncons) ./ (0.5*m)).^(1/2);
+v_f_data = avgVels.';
+energy_loss = (v_f_data.^2) ./ (v_f.^2);
+plot(x, v_f);
+legend("Experimental Data", "Theoretical Model",'Interpreter', 'latex', 'Location', 'southeast');
+
 
 % Plot average deviations with error bars
 subplot(3,1,2);
