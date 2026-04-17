@@ -26,49 +26,49 @@ darkObjectThreshold = 100; % for sphere detection (adjust as necessary)
 d_min = 0; % m
 d_max = 0.002; % m
 springConstant = 158; %in N/m
-recalibrateTrials = [49]; %if something shifted in the experiment and you need to recalibrate before a certain trial or trials, specify the trial number here. If not applicable, set this = []. The number 1 (for the first trial) needs to be in this array, or there will be an error.
-startTrial = 49; %if error occurs and need to pick up in the middle, comment out everything before the for loop and change this variable to the trial you want to restart at (make sure you don't clear the workspace)
+recalibrateTrials = [1]; %if something shifted in the experiment and you need to recalibrate before a certain trial or trials, specify the trial number here. If not applicable, set this = []. The number 1 (for the first trial) needs to be in this array, or there will be an error.
+startTrial = 1; %if error occurs and need to pick up in the middle, comment out everything before the for loop and change this variable to the trial you want to restart at (make sure you don't clear the workspace)
 plotTitle = 'Particle Launcher V6 | Spring $k = 158 N/m$ | 1.5 mm Steel Spheres | Launch Angle: $0^\circ$ (Down) | 04-12-2026'; %launch angle: 0 is down, 90 is right, 180 is up, 270 is left (counterclockwise)
-% 
-% 
-% %%--prompt user to select notebook .csv file--%
-% [file, path] = uigetfile('*.csv', 'Select Notebook CSV', videoPath);
-% notebook = readtable(fullfile(path, file), 'NumHeaderLines', 1);
-% 
-% %%--get some parameters about the dataset--%
-% trials = notebook{:,1}.'; %just a list from 1 to n where n is total # of trials
-% compressions = unique(notebook{:,3}.'); %a list of all the different spring compressions trialed
-% compressions_all = notebook{:,3}.'; % non-unique list
-% subtrialsPerCompression = (size(trials, 2)) / (size(compressions, 2)); %number of trials performed for each compression (must be the same for all compressions)
-% % velocities = nan(size(trials),1)
-% % deviations = nan(,1)
-% 
-% %initialize some parameters used in the for loop:
-% subtrial = 1; 
-% compressionIndex = 1;
-% 
-% %these will store the velocities and deviations for one compression within
-% %the for loop
-% compressionVels = nan(1, subtrialsPerCompression);
-% compressionDevs = nan(1, subtrialsPerCompression);
-% 
-% %these will store the average velocities/deviations, along with standard
-% %deviations, for the whole dataset
-% avgVels = nan(size(compressions, 2),1);
-% avgDevs = nan(size(compressions, 2),1);
-% stdVels = nan(size(compressions, 2),1);
-% stdDevs = nan(size(compressions, 2),1);
-% 
-% % this will store the deviations from each trial, along with corresponding
-% % compressions, for the scatter plot
-% deviationVecs = nan(size(trials,2),2);
-% 
-% %--run the mirrored tracking function once on the first video to establish
-% %tube size, tube axis, and exclusion rectangles:
-% % firstFile = string(notebook{1, 4});
-% % [avgv_0, deviation, deviationVec_1, calibrations] = sphere_tracking_mirror(videoPath, firstFile, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, []);
 
-%%--loop thru all the trials and run the sphere tracking on each video (and its mirror counterpart)--%%
+
+%%--prompt user to select notebook .csv file--%
+[file, path] = uigetfile('*.csv', 'Select Notebook CSV', videoPath);
+notebook = readtable(fullfile(path, file), 'NumHeaderLines', 1);
+
+%%--get some parameters about the dataset--%
+trials = notebook{:,1}.'; %just a list from 1 to n where n is total # of trials
+compressions = unique(notebook{:,3}.'); %a list of all the different spring compressions trialed
+compressions_all = notebook{:,3}.'; % non-unique list
+subtrialsPerCompression = (size(trials, 2)) / (size(compressions, 2)); %number of trials performed for each compression (must be the same for all compressions)
+% velocities = nan(size(trials),1)
+% deviations = nan(,1)
+
+%initialize some parameters used in the for loop:
+subtrial = 1; 
+compressionIndex = 1;
+
+%these will store the velocities and deviations for one compression within
+%the for loop
+compressionVels = nan(1, subtrialsPerCompression);
+compressionDevs = nan(1, subtrialsPerCompression);
+
+%these will store the average velocities/deviations, along with standard
+%deviations, for the whole dataset
+avgVels = nan(size(compressions, 2),1);
+avgDevs = nan(size(compressions, 2),1);
+stdVels = nan(size(compressions, 2),1);
+stdDevs = nan(size(compressions, 2),1);
+
+% this will store the deviations from each trial, along with corresponding
+% compressions, for the scatter plot
+deviationVecs = nan(size(trials,2),2);
+
+%--run the mirrored tracking function once on the first video to establish
+%tube size, tube axis, and exclusion rectangles:
+% firstFile = string(notebook{1, 4});
+% [avgv_0, deviation, deviationVec_1, calibrations] = sphere_tracking_mirror(videoPath, firstFile, fps, tubeDiameter_real, sphereRadius_real, deviationThreshold, deviationThresholdDistance, darkObjectThreshold, d_min, d_max, []);
+
+%--loop thru all the trials and run the sphere tracking on each video (and its mirror counterpart)--%%
 
 for trial = trials(startTrial:end)
     fprintf('Trial %i\n', trial);
