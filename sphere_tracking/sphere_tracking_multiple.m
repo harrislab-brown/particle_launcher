@@ -26,7 +26,7 @@ darkObjectThreshold = 100; % for sphere detection (adjust as necessary)
 d_min = 0; % m
 d_max = 0.002; % m
 springConstant = 158; %in N/m
-recalibrateTrials = [1]; %if something shifted in the experiment and you need to recalibrate before a certain trial or trials, specify the trial number here. If not applicable, set this = []. The number 1 (for the first trial) needs to be in this array, or there will be an error.
+recalibrateTrials = [1 50]; %if something shifted in the experiment and you need to recalibrate before a certain trial or trials, specify the trial number here. If not applicable, set this = []. The number 1 (for the first trial) needs to be in this array, or there will be an error.
 startTrial = 1; %if error occurs and need to pick up in the middle, comment out everything before the for loop and change this variable to the trial you want to restart at (make sure you don't clear the workspace)
 plotTitle = 'Particle Launcher V6 | Spring $k = 158 N/m$ | 1.5 mm Steel Spheres | Launch Angle: $0^\circ$ (Down) | 04-12-2026'; %launch angle: 0 is down, 90 is right, 180 is up, 270 is left (counterclockwise)
 
@@ -180,4 +180,4 @@ axis equal;
 grid on;
 
 saveas(gcf, append(videoPath, 'plot.png'));
-save(append(videoPath, 'postprocessed_data.mat'));
+save(append(videoPath, 'postprocessed_data1.mat'));

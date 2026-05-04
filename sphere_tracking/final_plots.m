@@ -1,8 +1,8 @@
-m_sphere = 0.0241e-3; %sphere mass in kg
-m_plunger = 2.5246e-3; %plunger+plunger tip mass
-m_spring = 0.6725e-3; %spring mass
-F_nc = 1.48; %aggregate net constant non-conservative force (match to fit data)
-d0 = 13.3e-3; %plunger travel distance in m (measured from CAD)
+% m_sphere = 0.0241e-3; %sphere mass in kg
+% m_plunger = 2.5246e-3; %plunger+plunger tip mass
+% m_spring = 0.6725e-3; %spring mass
+% F_nc = 1.48; %aggregate net constant non-conservative force (match to fit data)
+% d0 = 13.3e-3; %plunger travel distance in m (measured from CAD)
 
 %now we just want to plot the averages for velocity and deviation as a function of compression, showing the error bars for standard deviation:
 % Plot average velocities with error bars
@@ -49,8 +49,8 @@ for i = [1:n(2)]
     end
 end
 
-plot(x, v_f);
-legend("Experimental Data", "Theoretical Model",'Interpreter', 'latex', 'Location', 'southeast');
+%plot(x, v_f);
+%legend("Experimental Data", "Theoretical Model",'Interpreter', 'latex', 'Location', 'southeast');
 
 % Plot average deviations with error bars
 subplot(3,1,2);
